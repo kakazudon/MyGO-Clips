@@ -4,28 +4,95 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Video Viewer</title>
-</head>
-<body>
-  <div id="videoContainer"></div>
-
+  
   <script>
     // 從 URL 查詢參數獲取 "id"
     const urlParams = new URLSearchParams(window.location.search);
     const videoId = urlParams.get('id');
 
     if (videoId) {
-      // 動態加載視頻
+      // 動態生成 OpenGraph 元數據
+      const ogTitle = `Video: ${videoId}`;
+      const ogDescription = `Watch the video ${videoId}.`;
+      const videoUrl = `https://xx.com/video?id=${videoId}`;  // 根據你的實際 URL 替換
+
+      // 創建 OpenGraph metadata 標籤
+      const head = document.head;
+
+      // og:type
+      const metaType = document.createElement('meta');
+      metaType.setAttribute('property', 'og:type');
+      metaType.setAttribute('content', 'video.other');
+      head.appendChild(metaType);
+
+      // og:title
+      const metaTitle = document.createElement('meta');
+      metaTitle.setAttribute('property', 'og:title');
+      metaTitle.setAttribute('content', ogTitle);
+      head.appendChild(metaTitle);
+
+      // og:description
+      const metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('property', 'og:description');
+      metaDescription.setAttribute('content', ogDescription);
+      head.appendChild(metaDescription);
+
+      // og:image (根據需要設置影片的縮略圖)
+      const metaImage = document.createElement('meta');
+      metaImage.setAttribute('property', 'og:image');
+      metaImage.setAttribute('content', 'https://xx.com/thumbnail.jpg');  // 根據你的實際圖片路徑修改
+      head.appendChild(metaImage);
+
+      // og:url
+      const metaUrl = document.createElement('meta');
+      metaUrl.setAttribute('property', 'og:url');
+      metaUrl.setAttribute('content', videoUrl);
+      head.appendChild(metaUrl);
+
+      // og:video
+      const metaVideo = document.createElement('meta');
+      metaVideo.setAttribute('property', 'og:video');
+      metaVideo.setAttribute('content', `https://xx.com/videos/${videoId}.mp4`);  // 設置影片的實際 URL
+      head.appendChild(metaVideo);
+
+      // og:video:type
+      const metaVideoType = document.createElement('meta');
+      metaVideoType.setAttribute('property', 'og:video:type');
+      metaVideoType.setAttribute('content', 'video/mp4');
+      head.appendChild(metaVideoType);
+
+      // og:video:width
+      const metaVideoWidth = document.createElement('meta');
+      metaVideoWidth.setAttribute('property', 'og:video:width');
+      metaVideoWidth.setAttribute('content', '640');
+      head.appendChild(metaVideoWidth);
+
+      // og:video:height
+      const metaVideoHeight = document.createElement('meta');
+      metaVideoHeight.setAttribute('property', 'og:video:height');
+      metaVideoHeight.setAttribute('content', '360');
+      head.appendChild(metaVideoHeight);
+
+      // 創建影片播放器
       const videoContainer = document.getElementById('videoContainer');
       const videoElement = document.createElement('video');
       videoElement.controls = true;
+      videoElement.autoplay = true;  // 自動播放
+      videoElement.muted = true;  // 靜音播放，避免自動播放被阻止
+
+      // 創建 <source> 元素並設置 src 屬性
       const sourceElement = document.createElement('source');
-      sourceElement.src = `/videos/${videoId}.mp4`;
+      sourceElement.src = `/videos/${videoId}.mp4`;  // 假設視頻在 /videos/ 文件夾下
       sourceElement.type = 'video/mp4';
+
       videoElement.appendChild(sourceElement);
       videoContainer.appendChild(videoElement);
     } else {
       document.body.innerHTML = '<h1>Missing video ID</h1>';
     }
   </script>
+</head>
+<body>
+  <div id="videoContainer"></div>
 </body>
 </html>
