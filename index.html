@@ -56,7 +56,7 @@
         // og:video
         const metaVideo = document.createElement('meta');
         metaVideo.setAttribute('property', 'og:video');
-        metaVideo.setAttribute('content', `https://xx.com/videos/${videoId}.mp4`);  // 設置影片的實際 URL
+        metaVideo.setAttribute('content', `/videos/${videoId}.mp4`);  // 設置影片的實際 URL
         head.appendChild(metaVideo);
 
         // og:video:type
