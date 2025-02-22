@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Viewer</title>
+</head>
+<body>
+  <div id="videoContainer"></div>
+
+  <script>
+    // 從 URL 查詢參數獲取 "id"
+    const urlParams = new URLSearchParams(window.location.search);
+    const videoId = urlParams.get('id');
+
+    if (videoId) {
+      // 動態加載視頻
+      const videoContainer = document.getElementById('videoContainer');
+      const videoElement = document.createElement('video');
+      videoElement.controls = true;
+      const sourceElement = document.createElement('source');
+      sourceElement.src = `/videos/${videoId}.mp4`;
+      sourceElement.type = 'video/mp4';
+      videoElement.appendChild(sourceElement);
+      videoContainer.appendChild(videoElement);
+    } else {
+      document.body.innerHTML = '<h1>Missing video ID</h1>';
+    }
+  </script>
+</body>
+</html>
