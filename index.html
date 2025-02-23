@@ -1,100 +1,407 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Viewer</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<meta property="og:type" content="website">
+    <meta property="og:title" content="MyGO!!!!! 片段搜尋">
+	<meta property="og:url" content="https://mygo-clips.pages.dev/">
+	<meta property="og:image" content="https://mygo-clips.pages.dev/assets/og-preview.jpg">
+	<meta property="og:description" content="一個儲存mygo片段的網站 可以下載片段 或 複製連結">
+	
+    <title>MyGO!!!!! 片段搜尋</title>
+    <link rel="icon" type="image/x-icon" href="src/assets/favicon.ico">
+    <!-- Font Awesome 圖標庫 -->
+    <link rel="stylesheet" href="src/assets/fontawesome-free-6.4.0-web/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3388BB;
+            --secondary-color: #ffffff;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0;
+            background: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        #searchContainer {
+            width: 80%;           
+            max-width: 600px;     
+            margin: 0 auto;       
+            text-align: center;   
+            padding: 20px;
+        }
+
+        #searchBox {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 25px;
+            outline: none;
+            transition: border-color 0.3s;
+            background: var(--secondary-color);
+        }
+        
+        #results { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 10px; 
+        }
+        
+        .result-item {
+            position: relative;
+            margin: 10px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        
+        .result-item:hover {
+            transform: scale(1.10); /* hover放大 */
+            z-index: 100; /* 確保放大時覆蓋其他元素 */
+        }
+        
+        .result-item video {
+            width: 400px;
+        }
+        
+        .button-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .result-item:hover .button-container {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: #004488;
+            color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .icon-btn:hover {
+            background: #44aaff;
+            transform: scale(1.1);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #272727;
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        /* 圖片放大預覽樣式 */
+        .preview-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: zoom-out;
+        }
+
+        .preview-image {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+            animation: imageZoom 0.3s ease;
+        }
+
+        #scrollToTopBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: 3px solid var(--primary-color);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+            opacity: 0;
+            z-index: 200;
+        }
+    
+        #scrollToTopBtn:hover {
+            background-color: #bfbfbf;
+            transform: scale(1.1);
+        }
+
+        .footer-links {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            background-color: var(--secondary-color);
+            padding: 10px 0;
+        }
+
+        .footer-link-item {
+            list-style: none;
+        }
+
+        .footer-link-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 16px;
+            padding: 10px 20px;
+            display: block;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .footer-link-item a:hover {
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+        }
+
+        .footer-info {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            color: var(--primary-color);
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            text-align: right;
+        }
+
+        @keyframes imageZoom {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* 手機版樣式 */
+        @media (max-width: 768px) {
+            #searchBox {
+                width: 80%;
+            }
+            
+            .result-item img {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .icon-btn {
+                width: 30px;
+                height: 30px;
+            }
+
+            .preview-image {
+                max-width: 100%;
+                max-height: 70%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="videoContainer"></div>
+    <div id="searchContainer">
+        <h1>MyGO!!!!! 片段搜尋</h1>
+        <input type="text" id="searchBox" placeholder="輸入關鍵字...">
+    </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // 從 URL 查詢參數獲取 "id"
-      const urlParams = new URLSearchParams(window.location.search);
-      const videoId = urlParams.get('id');
+    <div class="footer-links">
+        <div class="footer-link-item"><a href="https://ave-mujica-searcher.pages.dev/">Ave Mujica 台詞搜尋</a></div>
+        <div class="footer-link-item"><a href="https://forms.gle/QtSv3wuDzGuDxhPA9">截圖錯誤回報 (眼睛沒睜開 表情怪異等)</a></div>
+        <div class="footer-link-item"><a href="https://forms.gle/xj11uU6o53bHXHuGA">問題 與 建議</a></div>
+        <div class="footer-link-item"><a href="#placeholder">GitHub</a></div>
 
-      if (videoId) {
-        // 動態生成 OpenGraph 元數據
-        const ogTitle = `Video: ${videoId}`;
-        const ogDescription = `Watch the video ${videoId}.`;
-        const videoUrl = `https://xx.com/video?id=${videoId}`;  // 根據你的實際 URL 替換
+        <div class="footer-info">
+            <p>made by kakatsudon</p>
+        </div>
+    </div>
 
-        // 創建 OpenGraph metadata 標籤
-        const head = document.head;
+    <div id="results"></div>
+    <button id="scrollToTopBtn">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+    
+    <div id="toast" class="toast"></div>
 
-        // og:type
-        const metaType = document.createElement('meta');
-        metaType.setAttribute('property', 'og:type');
-        metaType.setAttribute('content', 'video.other');
-        head.appendChild(metaType);
+    
 
-        // og:title
-        const metaTitle = document.createElement('meta');
-        metaTitle.setAttribute('property', 'og:title');
-        metaTitle.setAttribute('content', ogTitle);
-        head.appendChild(metaTitle);
+    <script>
+        let images = [];
 
-        // og:description
-        const metaDescription = document.createElement('meta');
-        metaDescription.setAttribute('property', 'og:description');
-        metaDescription.setAttribute('content', ogDescription);
-        head.appendChild(metaDescription);
+        // 顯示提示訊息
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.style.display = "block";
+            setTimeout(() => {
+                toast.style.display = "none";
+            }, 2000);
+        }
 
-        // og:image (根據需要設置影片的縮略圖)
-        const metaImage = document.createElement('meta');
-        metaImage.setAttribute('property', 'og:image');
-        metaImage.setAttribute('content', 'https://xx.com/thumbnail.jpg');  // 根據你的實際圖片路徑修改
-        head.appendChild(metaImage);
+        // 複製圖片功能
+        async function copyLink(img) {
+            try {
+                // 取得圖片的絕對網址
+                const url = new URL(img.src, window.location.origin).href;
 
-        // og:url
-        const metaUrl = document.createElement('meta');
-        metaUrl.setAttribute('property', 'og:url');
-        metaUrl.setAttribute('content', videoUrl);
-        head.appendChild(metaUrl);
+                // 複製到剪貼簿
+                await navigator.clipboard.writeText(url);
+                showToast("連結已複製到剪貼簿");
+            } catch (err) {
+                showToast("複製失敗: " + err);
+            }
+        }
 
-        // og:video
-        const metaVideo = document.createElement('meta');
-        metaVideo.setAttribute('property', 'og:video');
-        metaVideo.setAttribute('content', `/videos/${videoId}.mp4`);  // 設置影片的實際 URL
-        head.appendChild(metaVideo);
+        // 下載圖片功能
+        function downloadVideo(videoSrc, filename) {
+            const link = document.createElement('a');
+            link.href = videoSrc; // 视频文件的链接
+            link.download = filename; // 指定下载的文件名
+            document.body.appendChild(link);
+            link.click(); // 模拟点击下载链接
+            document.body.removeChild(link); // 下载完成后移除链接
+        }
 
-        // og:video:type
-        const metaVideoType = document.createElement('meta');
-        metaVideoType.setAttribute('property', 'og:video:type');
-        metaVideoType.setAttribute('content', 'video/mp4');
-        head.appendChild(metaVideoType);
+        // 搜尋功能
+        document.getElementById("searchBox").addEventListener("input", function() {
+            const query = this.value.trim().toLowerCase();
+            const resultsDiv = document.getElementById("results");
+            resultsDiv.innerHTML = "";
 
-        // og:video:width
-        const metaVideoWidth = document.createElement('meta');
-        metaVideoWidth.setAttribute('property', 'og:video:width');
-        metaVideoWidth.setAttribute('content', '640');
-        head.appendChild(metaVideoWidth);
+            if (!query) return;
 
-        // og:video:height
-        const metaVideoHeight = document.createElement('meta');
-        metaVideoHeight.setAttribute('property', 'og:video:height');
-        metaVideoHeight.setAttribute('content', '360');
-        head.appendChild(metaVideoHeight);
+            const filtered = images.filter(filename => 
+                filename.toLowerCase().includes(query)
+            );
 
-        // 創建影片播放器
-        const videoContainer = document.getElementById('videoContainer');
-        const videoElement = document.createElement('video');
-        videoElement.controls = true;
-        videoElement.autoplay = true;  // 自動播放
-        videoElement.muted = true;  // 靜音播放，避免自動播放被阻止
+            filtered.sort((a, b) => {
+                const matchA = a.match(/ep(\d+)_(\d+)_/);
+                const matchB = b.match(/ep(\d+)_(\d+)_/);
 
-        // 創建 <source> 元素並設置 src 屬性
-        const sourceElement = document.createElement('source');
-        sourceElement.src = `/videos/${videoId}.mp4`;  // 假設視頻在 /videos/ 文件夾下
-        sourceElement.type = 'video/mp4';
+                if (!matchA || !matchB) return 0; // 防止匹配失敗
 
-        videoElement.appendChild(sourceElement);
-        videoContainer.appendChild(videoElement);
-      } else {
-        document.body.innerHTML = '<h1>Missing video ID</h1>';
-      }
-    });
-  </script>
+                const epA = matchA[1];  // 直接使用 "01"、"02"、"03"
+                const lineA = parseInt(matchA[2], 10);  // 轉數字，確保 1 < 2 < 3
+                
+                const epB = matchB[1];
+                const lineB = parseInt(matchB[2], 10);
+
+                // 先比較 ep（字串），確保 ep01 在 ep02 前面
+                if (epA !== epB) return epA.localeCompare(epB);
+
+                // 如果 ep 相同，則比較行號（數字）
+                return lineA - lineB;
+            });
+
+            filtered.forEach(filename => {
+                const item = document.createElement('div');
+                item.className = 'result-item';
+
+                const video = document.createElement('video');
+
+                video.controls = false; // 初始不显示控制条
+                video.addEventListener('mouseover', () => {
+                    video.controls = true; // 鼠标悬停时显示控制条
+                });
+                video.addEventListener('mouseout', () => {
+                    video.controls = false; // 鼠标移开时隐藏控制条
+                });
+
+                const encodedFilename = encodeURIComponent(filename); // 处理不支持的字符
+
+                video.src = `src/assets/video/${encodedFilename}`;
+                video.alt = filename;
+
+                video.onerror = () => {
+                    console.log(`Video ${filename} not found`);
+                };
+
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'button-container';
+
+                // 复制按钮
+                const copyBtn = document.createElement('button');
+                copyBtn.title = "复制视频链接至剪贴簿";
+                copyBtn.className = 'icon-btn';
+                copyBtn.innerHTML = '<i class="fas fa-link"></i>';
+                copyBtn.onclick = () => copyLink(video);
+
+                // 下载按钮
+                const downloadBtn = document.createElement('button');
+                downloadBtn.title = "下载视频";
+                downloadBtn.className = 'icon-btn';
+                downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+                downloadBtn.onclick = () => downloadVideo(video.src, filename);
+
+                btnContainer.appendChild(copyBtn);
+                btnContainer.appendChild(downloadBtn);
+                item.appendChild(video);
+                item.appendChild(btnContainer);
+                resultsDiv.appendChild(item);
+            });
+
+            console.log(`Total results: ${filtered.length}`);
+        });
+
+        window.onscroll = function() {
+            let scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
+            // 判斷滾動位置
+            if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+                setTimeout(function() {
+                    scrollToTopBtn.style.opacity = 1;  // 漸顯透明度
+                }, 5);  // 延遲設置透明度，讓過渡生效
+            } else {
+                scrollToTopBtn.style.opacity = 0;  // 減少透明度
+            }
+        };
+
+
+        // 點擊按鈕後回到頁面頂部
+        scrollToTopBtn.onclick = function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // 初始化載入資料
+        fetch("src/assets/data.json")
+            .then(response => response.json())
+            .then(data => images = data)
+            .catch(() => showToast("無法載入資料"));
+    </script>
 </body>
 </html>

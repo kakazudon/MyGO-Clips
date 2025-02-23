@@ -1,1 +1,0 @@
-# MyGO-Clips
